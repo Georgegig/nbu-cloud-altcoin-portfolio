@@ -34,8 +34,8 @@ let NavigationComponent = Vue.component('nav-component', {
         login(){
             this.$router.push('/login');
         },
-        logout(){
-            localStorage.removeItem('user');
+        logout() {
+            UsersTable.logoutUser();
             this.$eventHub.$emit('loginChange');
             this.$router.push('/');
         },
@@ -48,7 +48,7 @@ let NavigationComponent = Vue.component('nav-component', {
         loginStatus(){
             this.userLoggedIn = UsersTable.userLoggedIn();
             if(this.userLoggedIn){
-                this.loggedUser = JSON.parse(localStorage.getItem('user')).name;
+                this.loggedUser = UsersTable.getLoggedUserName();
             }
             else{
                 this.loggedUser = '';

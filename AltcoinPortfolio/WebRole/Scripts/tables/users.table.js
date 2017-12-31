@@ -1,13 +1,13 @@
 'use strict';
 
-let UsersTable = (function(){    
+let UsersTable = (function () {
     let usersTableContainsEmail = (email) => {
         let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if(!usersTable){
+        if (!usersTable) {
             return false;
         }
-        for(var i = 0; i < usersTable.length; i++){
-            if(usersTable[i].email == email){
+        for (var i = 0; i < usersTable.length; i++) {
+            if (usersTable[i].email == email) {
                 return true;
             }
         }
@@ -15,11 +15,11 @@ let UsersTable = (function(){
 
     let validateEmailAndPassword = (email, password) => {
         let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if(!usersTable){
+        if (!usersTable) {
             return false;
         }
-        for(var i = 0; i < usersTable.length; i++){
-            if(usersTable[i].email == email && usersTable[i].password == password){
+        for (var i = 0; i < usersTable.length; i++) {
+            if (usersTable[i].email == email && usersTable[i].password == password) {
                 return true;
             }
         }
@@ -27,24 +27,25 @@ let UsersTable = (function(){
 
     let getUsername = (email, password) => {
         let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if(!usersTable){
+        if (!usersTable) {
             return "";
         }
-        for(var i = 0; i < usersTable.length; i++){
-            if(usersTable[i].email == email && usersTable[i].password == password){
+        for (var i = 0; i < usersTable.length; i++) {
+            if (usersTable[i].email == email && usersTable[i].password == password) {
                 return usersTable[i].name;
             }
         }
-    ;}
+        ;
+    }
 
     let userLoggedIn = () => {
         var user = JSON.parse(localStorage.getItem('user'));
-        if(user){
-            if(user.timeStamp && 
-            ((new Date(user.timeStamp)).addDays(1)).getTime() > (new Date()).getTime()){
+        if (user) {
+            if (user.timeStamp &&
+                ((new Date(user.timeStamp)).addDays(1)).getTime() > (new Date()).getTime()) {
                 return true;
             }
-            else{
+            else {
                 localStorage.removeItem('user');
                 return false;
             }
@@ -52,10 +53,47 @@ let UsersTable = (function(){
         return false;
     };
 
+    let registerUser = (name, email, password) => {
+        let usersTable = JSON.parse(localStorage.getItem('usersTable'));
+        if (!usersTable) {
+            usersTable = [];
+        }
+
+        usersTable.push({
+            name: name,
+            email: email,
+            password: password
+        })
+
+        localStorage.setItem('usersTable', JSON.stringify(usersTable));
+    };
+
+    let loginUser = (email, password) => {
+        let loginDate = new Date();
+        let user = {
+            name: getUsername(email, password),
+            email: email,
+            timeStamp: loginDate.getFullYear() + '-' + (loginDate.getMonth() + 1) + '-' + loginDate.getDate()
+        };
+        localStorage.setItem('user', JSON.stringify(user));
+    };
+
+    let getLoggedUserName = () => {
+        return JSON.parse(localStorage.getItem('user')).name;
+    };
+
+    let logoutUser = () => {
+        localStorage.removeItem('user');
+    };
+
     return {
         usersTableContainsEmail: usersTableContainsEmail,
         validateEmailAndPassword: validateEmailAndPassword,
         getUsername: getUsername,
-        userLoggedIn: userLoggedIn
+        userLoggedIn: userLoggedIn,
+        registerUser: registerUser,
+        loginUser: loginUser,
+        getLoggedUserName: getLoggedUserName,
+        logoutUser: logoutUser
     }
 })();

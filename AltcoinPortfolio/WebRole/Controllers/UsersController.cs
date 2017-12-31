@@ -6,11 +6,11 @@ using System.Web.Mvc;
 
 namespace WebRole.Controllers
 {
-    public class HomeController : Controller
+    public class UsersController : Controller
     {
-        public ActionResult Index()
+        public JsonResult Username()
         {
-            return View();
+            return this.Json(new { username = string.Empty });
         }
     }
 }

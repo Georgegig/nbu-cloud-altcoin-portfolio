@@ -48,13 +48,7 @@ let LoginView = {
                 this.unsuccessfulLogin = false;
               // Native form submission is not yet supported
                 if(UsersTable.validateEmailAndPassword(this.email, this.password)){
-                    let loginDate = new Date();
-                    let user = {
-                        name: UsersTable.getUsername(this.email, this.password),
-                        email: this.email,
-                        timeStamp:  loginDate.getFullYear() + '-' + (loginDate.getMonth() + 1) + '-' + loginDate.getDate()
-                    };
-                    localStorage.setItem('user', JSON.stringify(user));
+                    UsersTable.loginUser(this.email, this.password);
                     this.successfulLogin = true;
                     setTimeout(() => {
                         this.$router.push('/portfolio');
