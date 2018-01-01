@@ -6,8 +6,12 @@ using System.Web.Mvc;
 
 namespace WebRole.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
+        public HomeController() : base()
+        {               
+        }
+
         public ActionResult Index()
         {
             return View();

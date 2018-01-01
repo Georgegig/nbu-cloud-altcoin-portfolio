@@ -41,6 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Access\CloudBlobAccess.cs" />
+    <Compile Include="Access\CloudQueueAccess.cs" />
+    <Compile Include="Access\SqlServerDataAccess.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Entities\UserEntity.cs" />
     <Compile Include="Interfaces\IUserDataAccess.cs" />
     <Compile Include="Managers\UserManager.cs" />

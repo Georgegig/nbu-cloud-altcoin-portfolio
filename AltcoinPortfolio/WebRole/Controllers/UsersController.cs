@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PortfolioCommon.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -6,11 +7,16 @@ using System.Web.Mvc;
 
 namespace WebRole.Controllers
 {
-    public class UsersController : Controller
+    public class UsersController : BaseController
     {
-        public JsonResult Username()
+        public UsersController() : base()
         {
-            return this.Json(new { username = string.Empty });
+        }
+
+        public JsonResult GetUser(Guid userId)
+        {
+            UserEntity user = this._userManager.GetUser(userId);
+            return this.Json(user);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PortfolioCommon.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,12 @@ namespace PortfolioCommon.Interfaces
 {
     public interface IUserDataAccess
     {
-        RaffleEntity ReadRaffle(Guid raffleId);
-        List<RaffleEntity> ReadAllRaffles();
-        void InsertRaffle(RaffleEntity raffle);
-        void UpdateRaffle(RaffleEntity raffle);
-        List<BetEntity> ReadBetsForRaffle(Guid raffleId);
-        void InsertBet(BetEntity bet);
-        void ClearData();
+        UserEntity GetUser(Guid userId);
+        //List<RaffleEntity> ReadAllRaffles();
+        //void InsertRaffle(RaffleEntity raffle);
+        //void UpdateRaffle(RaffleEntity raffle);
+        //List<BetEntity> ReadBetsForRaffle(Guid raffleId);
+        //void InsertBet(BetEntity bet);
+        //void ClearData();
     }
 }
