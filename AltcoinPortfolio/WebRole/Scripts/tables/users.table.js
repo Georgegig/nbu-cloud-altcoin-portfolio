@@ -1,43 +1,7 @@
 'use strict';
 
-let UsersTable = (function () {
-    let usersTableContainsEmail = (email) => {
-        let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if (!usersTable) {
-            return false;
-        }
-        for (var i = 0; i < usersTable.length; i++) {
-            if (usersTable[i].email == email) {
-                return true;
-            }
-        }
-    };
-
-    let validateEmailAndPassword = (email, password) => {
-        let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if (!usersTable) {
-            return false;
-        }
-        for (var i = 0; i < usersTable.length; i++) {
-            if (usersTable[i].email == email && usersTable[i].password == password) {
-                return true;
-            }
-        }
-    };
-
-    let getUsername = (email, password) => {
-        let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if (!usersTable) {
-            return "";
-        }
-        for (var i = 0; i < usersTable.length; i++) {
-            if (usersTable[i].email == email && usersTable[i].password == password) {
-                return usersTable[i].name;
-            }
-        }
-        ;
-    }
-
+let UsersTable = (function () {     
+    
     let userLoggedIn = () => {
         var user = JSON.parse(localStorage.getItem('user'));
         if (user) {
@@ -52,23 +16,8 @@ let UsersTable = (function () {
         }
         return false;
     };
-
-    let registerUser = (name, email, password) => {
-        let usersTable = JSON.parse(localStorage.getItem('usersTable'));
-        if (!usersTable) {
-            usersTable = [];
-        }
-
-        usersTable.push({
-            name: name,
-            email: email,
-            password: password
-        })
-
-        localStorage.setItem('usersTable', JSON.stringify(usersTable));
-    };
-
-    let loginUser = (email, password) => {
+  
+    let loginUser = (email) => {
         let loginDate = new Date();
         let user = {
             email: email,
@@ -77,22 +26,18 @@ let UsersTable = (function () {
         localStorage.setItem('user', JSON.stringify(user));
     };
 
-    let getLoggedUserName = () => {
-        return JSON.parse(localStorage.getItem('user')).name;
+    let getLoggedUserMail = () => {
+        return JSON.parse(localStorage.getItem('user')).email;
     };
 
     let logoutUser = () => {
         localStorage.removeItem('user');
     };
-
+    
     return {
-        usersTableContainsEmail: usersTableContainsEmail,
-        validateEmailAndPassword: validateEmailAndPassword,
-        getUsername: getUsername,
         userLoggedIn: userLoggedIn,
-        registerUser: registerUser,
         loginUser: loginUser,
-        getLoggedUserName: getLoggedUserName,
+        getLoggedUserMail: getLoggedUserMail,
         logoutUser: logoutUser
     }
 })();

@@ -18,16 +18,51 @@ namespace PortfolioCommon.Access
 
         private const string _connectionString = @"Server=DESKTOP-SJ5O489;Database=NbuAltcoin;Integrated Security=True;";
 
+        #region User queries
         private const string GetUserQuery = @"Select * from [dbo].[User] Where [Id] = @Id";
         private const string InsertUserQuery = @" INSERT INTO [dbo].[User] (Id, Name, Email, Password)
         VALUES(@Id, @Name, @Email, @Password)";
-        private const string CheckExistingEmail = @"
+        private const string CheckExistingEmailQuery = @"
   SELECT COUNT(*)
   FROM [dbo].[User]
   WHERE Email = @Email";
-        private const string GetUserPasswordByEmail = @" SELECT Password
+        private const string GetUserPasswordByEmailQuery = @" SELECT Password
   FROM [dbo].[User]
   WHERE Email = @Email";
+        private const string ClearUsersQuery = @"Delete from [dbo].[User]";
+        #endregion
+
+        #region Portfolio queries
+        private const string SelectAllCoinsForUserPortfolioQuery = @"SELECT c.Id as Id,
+PortfolioId,
+c.Name as Name,
+Symbol,
+Rank,
+Price_USD,
+Amount
+FROM [dbo].Coin c
+INNER JOIN [dbo].[Portfolio] p ON p.Id = c.PortfolioId
+INNER JOIN [dbo].[User] u ON p.UserId = u.Id
+WHERE u.Email = @Email";
+        private const string InsertPortfolioQuery = @"INSERT INTO [dbo].[Portfolio] (Id, UserId) VALUES (@Id, @UserId)";
+        private const string GetUserPortfolioIdQuery = @"SELECT p.Id as Id FROM [dbo].[Portfolio] p
+INNER JOIN [dbo].[User] u ON p.UserId = u.Id
+WHERE u.Email = @Email";
+        private const string InsertCoinQuery = @"INSERT INTO [dbo].[Coin] (Id, PortfolioId, Name, Symbol, Rank, Price_USD, Amount)
+VALUES (@Id, @PortfolioId, @Name, @Symbol, @Rank, @Price_USD, @Amount)";
+        private const string ClearPortfolioQuery = @"Delete from [dbo].[Portfolio]";
+        private const string PortfolioHasCoinQuery = @"SELECT COUNT(c.Id) FROM [dbo].Coin c 
+INNER JOIN [dbo].[Portfolio] p ON p.Id = c.PortfolioId
+WHERE p.Id = @PortfolioId 
+AND c.id = @CoinId";
+        private const string UpdateCoinAmountQuery = @"
+UPDATE [dbo].[Coin]   
+SET Amount = @Amount 
+WHERE PortfolioId = @PortfolioId
+AND Id = @CoinId";
+        #endregion
+
+        #region User methods
 
         public string GetUserPassword(string email)
         {
@@ -36,7 +71,7 @@ namespace PortfolioCommon.Access
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                SqlCommand cmd = new SqlCommand(GetUserPasswordByEmail, connection);
+                SqlCommand cmd = new SqlCommand(GetUserPasswordByEmailQuery, connection);
 
                 cmd.Parameters.AddWithValue("@Email", email);
 
@@ -61,7 +96,7 @@ namespace PortfolioCommon.Access
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                SqlCommand cmd = new SqlCommand(CheckExistingEmail, connection);
+                SqlCommand cmd = new SqlCommand(CheckExistingEmailQuery, connection);
 
                 cmd.Parameters.AddWithValue("@Email", email);
 
@@ -90,15 +125,26 @@ namespace PortfolioCommon.Access
             bool emailExists = this.CheckEmailExists(user.Email);
             if (!emailExists)
             {
+                var userId = Guid.NewGuid();
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
                     SqlCommand insertCommand = new SqlCommand(InsertUserQuery, connection);
 
-                    insertCommand.Parameters.AddWithValue("@Id", Guid.NewGuid());
+                    insertCommand.Parameters.AddWithValue("@Id", userId);
                     insertCommand.Parameters.AddWithValue("@Name", user.Name);
                     insertCommand.Parameters.AddWithValue("@Email", user.Email);
                     insertCommand.Parameters.AddWithValue("@Password", user.Password);
+
+                    insertCommand.ExecuteNonQuery();
+                }
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    SqlCommand insertCommand = new SqlCommand(InsertPortfolioQuery, connection);
+
+                    insertCommand.Parameters.AddWithValue("@Id", Guid.NewGuid());
+                    insertCommand.Parameters.AddWithValue("@UserId", userId);
 
                     insertCommand.ExecuteNonQuery();
                 }
@@ -133,6 +179,142 @@ namespace PortfolioCommon.Access
                 return raffle;
             }
         }
+        #endregion
+
+        #region Portfolio methods
+        public List<CoinEntity> GetUserPortfolio(string email)
+        {
+            List<CoinEntity> coins = new List<CoinEntity>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlDataAdapter adapter = new SqlDataAdapter();
+                adapter.SelectCommand = new SqlCommand(SelectAllCoinsForUserPortfolioQuery, connection);
+
+                adapter.SelectCommand.Parameters.AddWithValue("@Email", email);
+                DataTable tableCoins = new DataTable();
+                adapter.Fill(tableCoins);
+
+                foreach (DataRow row in tableCoins.Rows)
+                {
+                    CoinEntity coin = createCoinFromDataRow(row);
+                    coins.Add(coin);
+                }
+            }
+
+            return coins;
+        }
+
+        private Guid GetUserPortfolioId(string email)
+        {
+            Guid portfolioId = Guid.Empty;
+            object result = null;
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlCommand cmd = new SqlCommand(GetUserPortfolioIdQuery, connection);
+
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    portfolioId = (Guid)result;
+                }
+            }
+
+            return portfolioId;
+        }
+        
+        private bool UserPortfolioAlreadyContainsCoin(Guid portfolioId, string coinId)
+        {
+            var count = 0;
+            object result = null;
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlCommand cmd = new SqlCommand(PortfolioHasCoinQuery, connection);
+
+                cmd.Parameters.AddWithValue("@PortfolioId", portfolioId);
+                cmd.Parameters.AddWithValue("@CoinId", coinId);
+
+                result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    count = (int)result;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            if (count > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public void AddCoinToUserPortfolio(string email, CoinEntity coin)
+        {
+            Guid portfolioId = this.GetUserPortfolioId(email);
+
+            if (this.UserPortfolioAlreadyContainsCoin(portfolioId, coin.Id))
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    SqlCommand insertCommand = new SqlCommand(UpdateCoinAmountQuery, connection);
+
+                    insertCommand.Parameters.AddWithValue("@Id", coin.Id);
+                    insertCommand.Parameters.AddWithValue("@PortfolioId", portfolioId);
+                    insertCommand.Parameters.AddWithValue("@Amount", coin.Amount);
+
+                    insertCommand.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    SqlCommand insertCommand = new SqlCommand(InsertCoinQuery, connection);
+
+                    insertCommand.Parameters.AddWithValue("@Id", coin.Id);
+                    insertCommand.Parameters.AddWithValue("@PortfolioId", portfolioId);
+                    insertCommand.Parameters.AddWithValue("@Name", coin.Name);
+                    insertCommand.Parameters.AddWithValue("@Symbol", coin.Symbol);
+                    insertCommand.Parameters.AddWithValue("@Rank", coin.Rank);
+                    insertCommand.Parameters.AddWithValue("@Price_USD", coin.Price_USD);
+                    insertCommand.Parameters.AddWithValue("@Amount", coin.Amount);
+
+                    insertCommand.ExecuteNonQuery();
+                }
+            }            
+        }
+        #endregion
+
+        #region General methods
+        public void ClearData()
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                SqlCommand commandClearBets = new SqlCommand(ClearUsersQuery, connection);
+                commandClearBets.ExecuteNonQuery();
+
+                SqlCommand commandClearRaffles = new SqlCommand(ClearPortfolioQuery, connection);
+                commandClearRaffles.ExecuteNonQuery();
+            }
+        }
+        #endregion
+
+        #region Helpers
         private UserEntity createUserFromDataRow(DataRow row)
         {
             UserEntity user = new UserEntity();
@@ -144,6 +326,21 @@ namespace PortfolioCommon.Access
 
             return user;
         }
+        private CoinEntity createCoinFromDataRow(DataRow row)
+        {
+            CoinEntity coin = new CoinEntity();
+
+            coin.Id = row.Field<string>(Constants.CoinColumnNames.Id);
+            coin.PortfolioId = row.Field<Guid>(Constants.CoinColumnNames.PortfolioId);
+            coin.Name = row.Field<string>(Constants.CoinColumnNames.Name);
+            coin.Price_USD = row.Field<decimal>(Constants.CoinColumnNames.Price_USD);
+            coin.Rank = row.Field<int>(Constants.CoinColumnNames.Rank);
+            coin.Symbol = row.Field<string>(Constants.CoinColumnNames.Symbol);
+            coin.Amount = row.Field<double>(Constants.CoinColumnNames.Amount);
+
+            return coin;
+        }
+        #endregion
 
 
         //private const string SelectAllRafflesQuery = @"Select * from Raffle";
@@ -152,8 +349,6 @@ namespace PortfolioCommon.Access
         //private const string SelectBetsForRaffleQuery = @"Select * from Bet Where [RaffleId] = @RaffleId";
         //private const string InsertBetQuery = @"Insert into Bet (RaffleId, TicketNumber, BetNumber, SubmittedBy, CreateDate, UpdateDate) values (@RaffleId, @TicketNumber, @BetNumber, @SubmittedBy, @CreateDate, @UpdateDate)";
 
-        //private const string ClearBetsQuery = @"Delete from Bet";
-        //private const string ClearRafflesQuery = @"Delete from Raffle";
         //public List<RaffleEntity> ReadAllRaffles()
         //{
         //    List<RaffleEntity> raffles = new List<RaffleEntity>();
@@ -289,19 +484,6 @@ namespace PortfolioCommon.Access
         //    }
         //}
 
-        //public void ClearData()
-        //{
-        //    using (SqlConnection connection = new SqlConnection(_connectionString))
-        //    {
-        //        connection.Open();
-
-        //        SqlCommand commandClearBets = new SqlCommand(ClearBetsQuery, connection);
-        //        commandClearBets.ExecuteNonQuery();
-
-        //        SqlCommand commandClearRaffles = new SqlCommand(ClearRafflesQuery, connection);
-        //        commandClearRaffles.ExecuteNonQuery();
-        //    }
-        //}
 
 
         //private BetEntity createBetFromDataRow(DataRow row)

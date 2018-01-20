@@ -46,8 +46,7 @@ let LoginView = {
             if (this.$refs.form.validate()) {
                 this.successfulLogin = false;
                 this.unsuccessfulLogin = false;
-              // Native form submission is not yet supported
-                this.$http.post('http://localhost:51113/Users/LoginUser', {
+                this.$http.post(CONSTANTS.SERVER_ROUTES.LOGIN_USER, {
                     Email: this.email,
                     Password: this.password
                 }).then(function success(data) {
@@ -64,20 +63,9 @@ let LoginView = {
                     }
                     console.log(data);
                 },
-                    function error() {
-                        console.log(data);
-                    });
-                //if(UsersTable.validateEmailAndPassword(this.email, this.password)){
-                //    UsersTable.loginUser(this.email, this.password);
-                //    this.successfulLogin = true;
-                //    setTimeout(() => {
-                //        this.$router.push('/portfolio');
-                //    }, 1500)
-                //    this.$eventHub.$emit('loginChange');
-                //}
-                //else{
-                //    this.unsuccessfulLogin = true;
-                //}
+                function error(data) {
+                    console.log(data);
+                });
             }
           },
           clear() {

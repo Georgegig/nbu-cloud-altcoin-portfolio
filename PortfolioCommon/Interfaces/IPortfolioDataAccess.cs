@@ -12,11 +12,9 @@ namespace PortfolioCommon.Interfaces
         UserEntity GetUser(Guid userId);
         void RegisterUser(UserEntity user);
         string GetUserPassword(string email);
-        //List<RaffleEntity> ReadAllRaffles();
-        //void InsertRaffle(RaffleEntity raffle);
-        //void UpdateRaffle(RaffleEntity raffle);
-        //List<BetEntity> ReadBetsForRaffle(Guid raffleId);
-        //void InsertBet(BetEntity bet);
-        //void ClearData();
+        void ClearData();
+
+        List<CoinEntity> GetUserPortfolio(string email);
+        void AddCoinToUserPortfolio(string email, CoinEntity coin);
     }
 }

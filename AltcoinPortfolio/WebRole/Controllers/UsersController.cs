@@ -12,6 +12,7 @@ namespace WebRole.Controllers
         public UsersController() : base()
         {
         }
+
         [HttpPost]
         public JsonResult LoginUser(UserEntity user)
         {
@@ -36,6 +37,7 @@ namespace WebRole.Controllers
 
             return Json(new { success = true, result }, JsonRequestBehavior.AllowGet);
         }
+
         public JsonResult GetUser(Guid userId)
         {
             UserEntity user = this._portfolioManager.GetUser(userId);
@@ -48,6 +50,7 @@ namespace WebRole.Controllers
                 return this.Json(new { empty = "Empty" }, JsonRequestBehavior.AllowGet);
             }
         }
+
         [HttpPost]
         public JsonResult RegisterUser(UserEntity user)
         {

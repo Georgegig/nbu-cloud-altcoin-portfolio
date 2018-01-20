@@ -27,9 +27,7 @@ let RegisterView = {
             email: '',
             emailRules: [
                 (v) => !!v || 'E-mail is required',
-                (v) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid',
-                (v) => JSON.parse(localStorage.getItem('usersTable')) ? 
-                     UsersTable.usersTableContainsEmail(v) ? 'E-mail already exists' : true : true
+                (v) => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid'
             ],
             password: '',
             passwordRules: [
@@ -56,8 +54,7 @@ let RegisterView = {
     methods:{
         register() {
             if (this.$refs.form.validate()) {
-                debugger;
-                this.$http.post('http://localhost:51113/Users/RegisterUser', {
+                this.$http.post(CONSTANTS.SERVER_ROUTES.REGISTER_USER, {
                     Name: this.name,
                     Email: this.email,
                     Password: this.password
@@ -67,14 +64,13 @@ let RegisterView = {
                     }
                     console.log(data);
                 },
-                function error() {
+                function error(data) {
                     console.log(data);
                 });
-              //UsersTable.registerUser(this.name, this.email, this.password);
             }
           },
           clear() {
-            this.$refs.form.reset()
+              this.$refs.form.reset();
           }
     }
 };

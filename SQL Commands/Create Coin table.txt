@@ -1,0 +1,22 @@
+SET ANSI_NULLS ON 
+GO 
+SET QUOTED_IDENTIFIER ON 
+GO 
+CREATE TABLE [dbo].[Coin]( 
+[Id] [nvarchar](50) NOT NULL, 
+[PortfolioId] [uniqueidentifier] NOT NULL,
+[Name] [nvarchar](50) NOT NULL, 
+[Symbol] [nvarchar](5) NOT NULL, 
+[Rank] [int],
+[Price_USD] [decimal](30,10),
+[Amount] [float],
+CONSTRAINT [PK_Coin] PRIMARY KEY CLUSTERED 
+( 
+[Id] ASC 
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY] ,
+CONSTRAINT FK_Coin_Portfolio FOREIGN KEY (PortfolioId)     
+    REFERENCES [dbo].[Portfolio] (Id)     
+    ON DELETE CASCADE    
+    ON UPDATE CASCADE    
+) ON [PRIMARY] 
+GO 

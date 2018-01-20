@@ -24,23 +24,30 @@ namespace PortfolioCommon.Managers
             _cloudBlobAccess = cloudBlobAccess;
         }
 
-
         public UserEntity GetUser(Guid userId)
         {
-            UserEntity user = _portfolioDataAccess.GetUser(userId);
-            return user;
+            return _portfolioDataAccess.GetUser(userId);
         }
 
         public void RegisterUser(UserEntity user)
         {
             this._portfolioDataAccess.RegisterUser(user);
         }
+
         public string GetUserPassword(string email)
         {
-            string pass = _portfolioDataAccess.GetUserPassword(email);
-            return pass;
+            return _portfolioDataAccess.GetUserPassword(email);
         }
 
+        public List<CoinEntity> GetUserPortfolio(string email)
+        {
+            return this._portfolioDataAccess.GetUserPortfolio(email);
+        }
+
+        public void AddCoinToUserPortfolio(string email, CoinEntity coin)
+        {
+            this._portfolioDataAccess.AddCoinToUserPortfolio(email, coin);
+        }
         //public List<RaffleEntity> ReadAllRaffles()
         //{
         //    List<RaffleEntity> raffles = _dataAccess.ReadAllRaffles();

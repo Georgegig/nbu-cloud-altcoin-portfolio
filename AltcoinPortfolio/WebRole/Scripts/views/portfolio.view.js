@@ -116,53 +116,69 @@ let PortfolioView = {
             this.addCoinDialog = false;
         },
         add() {
-            if (this.$refs.form.validate()) {                
-                let coinIndex = _.findIndex(this.portfolio, (el) => {
-                    return el.id == this.selectedCoin.id;
-                });
-                if(coinIndex == -1){
-                    this.portfolio.push(this.selectedCoin);
-                }
-                else {
-                    this.portfolio[coinIndex].amount = (parseFloat(this.portfolio[coinIndex].amount) +
-                        parseFloat(this.selectedCoin.amount)).toFixed(2);
-                }
-                PortfolioTable.updateUserPortfolio(this.portfolio);
-                this.refreshPortfolio();
+            if (this.$refs.form.validate()) {     
+                debugger;
+                this.$http.post(CONSTANTS.SERVER_ROUTES.ADD_COIN, {
+                    coin: {
+                        UserEmail: UsersTable.getLoggedUserMail(),
+                        Coin: {
+                            Id: this.selectedCoin.id,
+                            Name: this.selectedCoin.name,
+                            Symbol: this.selectedCoin.symbol,
+                            Rank: this.selectedCoin.rank,
+                            Price_USD: this.selectedCoin.price_usd,
+                            Amount: this.selectedCoin.amount
+                        }
+                    }
+                }).then(function success(data) {
+                    if (data.body.success) {
+                        this.$router.push('/login');
+                    }
+                    console.log(data);
+                },
+                    function error(data) {
+                        console.log(data);
+                    });
                 this.addCoinDialog = false;
             }
         },
         refreshPortfolio() {  
-            this.portfolio = PortfolioTable.getUserPortfolio();
-            this.portfolio = this.portfolio ? this.portfolio : [];       
-            if(this.portfolio && this.portfolio.length > 0){
-                this.totalAmount = 0;
-                let promises = [];
-                for(var i = 0; i < this.portfolio.length; i++){
-                    promises.push(this.$http.get(`https://api.coinmarketcap.com/v1/ticker/${this.portfolio[i].id}/`));
-                }
-                Promise.all(promises).then(
-                    (responseArray) => {
-                        for(let i = 0; i < responseArray.length; i++){
-                            let response = responseArray[i].body[0];
-                            let coinIndex = _.findIndex(this.portfolio, (el) => {
-                                return el.id == response.id;
-                            });
-                            let currentCoin = this.portfolio[coinIndex];
-                            let currCoinAmount = currentCoin.amount;
-                            this.portfolio[coinIndex] = response;
-                            this.portfolio[coinIndex].amount = currCoinAmount;
-                            this.totalAmount += parseFloat(currCoinAmount) * parseFloat(response.price_usd);
+            debugger;
+            this.$http.get(CONSTANTS.SERVER_ROUTES.GET_PORTFOLIO + '?email=' + UsersTable.getLoggedUserMail())
+                .then(function success(data) {
+                    debugger;
+                    this.portfolio = data.body.result;
+                    this.portfolio = this.portfolio ? this.portfolio : [];
+                    if (this.portfolio && this.portfolio.length > 0) {
+                        this.totalAmount = 0;
+                        let promises = [];
+                        for (var i = 0; i < this.portfolio.length; i++) {
+                            promises.push(this.$http.get(`https://api.coinmarketcap.com/v1/ticker/${this.portfolio[i].Id}/`));
                         }
-                        this.totalAmount = this.totalAmount.toFixed(2);
-                        PortfolioTable.updateUserPortfolio(this.portfolio);
-                    },
-                    (err) => { console.log(err); }
-                );
-            }
-            else{
-                this.totalAmount = 0;
-            }
+                        Promise.all(promises).then(
+                            (responseArray) => {
+                                for (let i = 0; i < responseArray.length; i++) {
+                                    let response = responseArray[i].body[0];
+                                    let coinIndex = _.findIndex(this.portfolio, (el) => {
+                                        return el.Id == response.id;
+                                    });
+                                    let currentCoin = this.portfolio[coinIndex];
+                                    let currCoinAmount = currentCoin.Amount;
+                                    this.portfolio[coinIndex] = response;
+                                    this.portfolio[coinIndex].Amount = currCoinAmount;
+                                    this.totalAmount += parseFloat(currCoinAmount) * parseFloat(response.price_usd);
+                                }
+                                this.totalAmount = this.totalAmount.toFixed(2);
+                            },
+                            (err) => { console.log(err); }
+                        );
+                    }
+                    else {
+                        this.totalAmount = 0;
+                    }
+                }, function error(data) {
+                    console.log(data);
+                });            
         },
         deletePortfolio() {
             PortfolioTable.deleteUserPortfolio();

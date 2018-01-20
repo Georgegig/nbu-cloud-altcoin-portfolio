@@ -32,7 +32,6 @@ let NavigationComponent = Vue.component('nav-component', {
             this.$router.push('/');
         },
         login() {
-            debugger;
             this.$router.push('/login');
         },
         logout() {
@@ -49,7 +48,7 @@ let NavigationComponent = Vue.component('nav-component', {
         loginStatus(){
             this.userLoggedIn = UsersTable.userLoggedIn();
             if(this.userLoggedIn){
-                this.loggedUser = UsersTable.getLoggedUserName();
+                this.loggedUser = UsersTable.getLoggedUserMail();
             }
             else{
                 this.loggedUser = '';

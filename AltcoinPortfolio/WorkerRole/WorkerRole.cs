@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -9,62 +10,130 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue;
+using PortfolioCommon.Access;
+using PortfolioCommon.Interfaces;
 
 namespace WorkerRole
 {
     public class WorkerRole : RoleEntryPoint
     {
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private readonly ManualResetEvent runCompleteEvent = new ManualResetEvent(false);
+        private CloudQueueAccess _cloudQueueAccess;
+        private IPortfolioDataAccess _dataAccess;
 
         public override void Run()
         {
-            Trace.TraceInformation("WorkerRole is running");
+            Trace.WriteLine("Portfolio WorkerRole entry point called", "Information");
 
-            try
+            while (true)
             {
-                this.RunAsync(this.cancellationTokenSource.Token).Wait();
-            }
-            finally
-            {
-                this.runCompleteEvent.Set();
+                Thread.Sleep(15000);
+
+                this.GetPortfolioMessage();
+
+                //this.UpdatePortfolioMessage();
             }
         }
 
         public override bool OnStart()
         {
-            // Set the maximum number of concurrent connections
             ServicePointManager.DefaultConnectionLimit = 12;
+            Trace.AutoFlush = true;
 
-            // For information on handling configuration changes
-            // see the MSDN topic at https://go.microsoft.com/fwlink/?LinkId=166357.
+            _dataAccess = new SqlServerDataAccess();
+            _cloudQueueAccess = new CloudQueueAccess();
 
-            bool result = base.OnStart();
+            initializeStorage();
 
-            Trace.TraceInformation("WorkerRole has been started");
-
-            return result;
+            return base.OnStart();
         }
 
-        public override void OnStop()
+        private void initializeStorage()
         {
-            Trace.TraceInformation("WorkerRole is stopping");
+            File.Delete(@"C:\PortfolioWorkerRole.log");
 
-            this.cancellationTokenSource.Cancel();
-            this.runCompleteEvent.WaitOne();
-
-            base.OnStop();
-
-            Trace.TraceInformation("WorkerRole has stopped");
+            //_dataAccess.ClearData();
+            _cloudQueueAccess.ClearDrawRaffleQueue();
         }
 
-        private async Task RunAsync(CancellationToken cancellationToken)
+        private void GetPortfolioMessage()
         {
-            // TODO: Replace the following with your own logic.
-            while (!cancellationToken.IsCancellationRequested)
+            CloudQueueMessage getPortfolioMessage = _cloudQueueAccess.ReadGetPortfolioMessage();
+
+            if (getPortfolioMessage != null)
             {
-                Trace.TraceInformation("Working");
-                await Task.Delay(1000);
+                Guid raffleId;
+
+                try
+                {
+                    raffleId = Guid.Parse(getPortfolioMessage.AsString);
+                    Trace.WriteLine("Processing Raffle id: " + raffleId.ToString());
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Cannot parse Id from message." + ex.Message);
+                    _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
+
+                    return;
+                }
+
+                try
+                {
+                    //RaffleEntity raffle = _dataAccess.ReadRaffle(raffleId);
+
+                    //if (raffle == null)
+                    //{
+                    //    Trace.WriteLine("Raffle not found. Raffle ID: " + raffleId);
+
+                    //    _cloudQueueAccess.DeleteDrawRaffleMessage(drawRaffleMessage);
+                    //    continue;
+                    //}
+
+                    //if (raffle.GetStatus() == RaffleStatus.Processed)
+                    //{
+                    //    Trace.WriteLine("Raffle is already precessed. Raffle ID: " + raffleId);
+
+                    //    _cloudQueueAccess.DeleteDrawRaffleMessage(drawRaffleMessage);
+                    //    continue;
+                    //}
+
+                    //var random = new Random();
+                    //raffle.WinningNumber = random.Next(1, 6);
+
+                    //List<BetEntity> betsForRaffle = _dataAccess.ReadBetsForRaffle(raffleId);
+                    //List<int> winningTicketNumbers = new List<int>();
+
+                    //foreach (var bet in betsForRaffle)
+                    //{
+                    //    if (bet.BetNumber == raffle.WinningNumber)
+                    //    {
+                    //        winningTicketNumbers.Add(bet.TicketNumber);
+                    //    }
+                    //}
+
+                    //raffle.SetStatus(RaffleStatus.Processed);
+                    //raffle.UpdateDate = DateTime.Now;
+
+                    //if (winningTicketNumbers.Count > 0)
+                    //{
+                    //    raffle.WinningTicketsResult = string.Join(", ", winningTicketNumbers);
+                    //}
+                    //else
+                    //{
+                    //    raffle.WinningTicketsResult = "No winning tickets.";
+                    //}
+
+                    //_dataAccess.UpdateRaffle(raffle);
+
+                    //Trace.WriteLine("Raffle processed. Raffle ID: " + raffleId);
+                    //Trace.WriteLine("Winning number: " + raffle.WinningNumber);
+
+                    _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Error processing raffle." + ex.Message);
+                }
             }
         }
     }

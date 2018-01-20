@@ -168,6 +168,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\PortfolioController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -182,6 +183,7 @@
     <Content Include="Global.asax" />
     <Content Include="ApplicationInsights.config" />
     <Content Include="Scripts\app.js" />
+    <Content Include="Scripts\common\constants.js" />
     <Content Include="Scripts\common\polyfills.js" />
     <Content Include="Scripts\components\footer.component.js" />
     <Content Include="Scripts\components\login.component.js" />
@@ -211,6 +213,7 @@
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\Portfolio\" />
     <Folder Include="Views\Users\" />
   </ItemGroup>
   <ItemGroup>

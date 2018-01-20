@@ -45,6 +45,8 @@
     <Compile Include="Access\CloudQueueAccess.cs" />
     <Compile Include="Access\SqlServerDataAccess.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="DataModels\EmailCoinDataModel.cs" />
+    <Compile Include="Entities\CoinEntity.cs" />
     <Compile Include="Entities\UserEntity.cs" />
     <Compile Include="Interfaces\IPortfolioDataAccess.cs" />
     <Compile Include="Managers\PortfolioManager.cs" />

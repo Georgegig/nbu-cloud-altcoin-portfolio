@@ -21,10 +21,21 @@ namespace PortfolioCommon
             public const string Password = "Password";
         }
 
-        //public class QueueNames
-        //{
-        //    public const string DrawRaffle = "drawraffle";
-        //}
+        public class CoinColumnNames
+        {
+            public const string Id = "Id";
+            public const string PortfolioId = "PortfolioId";
+            public const string Name = "Name";
+            public const string Symbol = "Symbol";
+            public const string Rank = "Rank";
+            public const string Price_USD = "Price_USD";
+            public const string Amount = "Amount";
+        }
+
+        public class QueueNames
+        {
+            public const string GetPortfolio = "getportfolio";
+        }
 
         //public class BlobNames
         //{
