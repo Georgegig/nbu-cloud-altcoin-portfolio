@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace PortfolioCommon.Interfaces
 {
-    public interface IUserDataAccess
+    public interface IPortfolioDataAccess
     {
         UserEntity GetUser(Guid userId);
+        void RegisterUser(UserEntity user);
+        string GetUserPassword(string email);
         //List<RaffleEntity> ReadAllRaffles();
         //void InsertRaffle(RaffleEntity raffle);
         //void UpdateRaffle(RaffleEntity raffle);

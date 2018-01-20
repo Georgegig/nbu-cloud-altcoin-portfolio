@@ -56,8 +56,21 @@ let RegisterView = {
     methods:{
         register() {
             if (this.$refs.form.validate()) {
-              UsersTable.registerUser(this.name, this.email, this.password);
-              this.$router.push('/login');
+                debugger;
+                this.$http.post('http://localhost:51113/Users/RegisterUser', {
+                    Name: this.name,
+                    Email: this.email,
+                    Password: this.password
+                }).then(function success(data) {
+                    if (data.body.success) {
+                        this.$router.push('/login');
+                    }
+                    console.log(data);
+                },
+                function error() {
+                    console.log(data);
+                });
+              //UsersTable.registerUser(this.name, this.email, this.password);
             }
           },
           clear() {

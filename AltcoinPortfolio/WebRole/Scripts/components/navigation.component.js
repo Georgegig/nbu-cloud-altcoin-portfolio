@@ -31,7 +31,8 @@ let NavigationComponent = Vue.component('nav-component', {
         homePage() {
             this.$router.push('/');
         },
-        login(){
+        login() {
+            debugger;
             this.$router.push('/login');
         },
         logout() {

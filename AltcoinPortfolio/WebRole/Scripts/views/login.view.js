@@ -47,17 +47,37 @@ let LoginView = {
                 this.successfulLogin = false;
                 this.unsuccessfulLogin = false;
               // Native form submission is not yet supported
-                if(UsersTable.validateEmailAndPassword(this.email, this.password)){
-                    UsersTable.loginUser(this.email, this.password);
-                    this.successfulLogin = true;
-                    setTimeout(() => {
-                        this.$router.push('/portfolio');
-                    }, 1500)
-                    this.$eventHub.$emit('loginChange');
-                }
-                else{
-                    this.unsuccessfulLogin = true;
-                }
+                this.$http.post('http://localhost:51113/Users/LoginUser', {
+                    Email: this.email,
+                    Password: this.password
+                }).then(function success(data) {
+                    if (data.body.success) {
+                        UsersTable.loginUser(this.email, this.password);
+                        this.successfulLogin = true;
+                        setTimeout(() => {
+                            this.$router.push('/portfolio');
+                        }, 1500)
+                        this.$eventHub.$emit('loginChange');
+                    }
+                    else {
+                        this.unsuccessfulLogin = true;
+                    }
+                    console.log(data);
+                },
+                    function error() {
+                        console.log(data);
+                    });
+                //if(UsersTable.validateEmailAndPassword(this.email, this.password)){
+                //    UsersTable.loginUser(this.email, this.password);
+                //    this.successfulLogin = true;
+                //    setTimeout(() => {
+                //        this.$router.push('/portfolio');
+                //    }, 1500)
+                //    this.$eventHub.$emit('loginChange');
+                //}
+                //else{
+                //    this.unsuccessfulLogin = true;
+                //}
             }
           },
           clear() {

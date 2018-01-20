@@ -13,19 +13,19 @@ namespace WebRole.Controllers
 {
     public class BaseController : Controller
     {
-        protected UserManager _userManager;
+        protected PortfolioManager _portfolioManager;
 
         public BaseController()
         {
-            this.InitializeUserManager();
+            this.InitializePortfolioManager();
         }
 
-        private void InitializeUserManager()
+        private void InitializePortfolioManager()
         {
-            IUserDataAccess userDataAccess = null;
+            IPortfolioDataAccess portfolioDataAccess = null;
             if(ConfigurationManager.AppSettings["StorageMode"] == Constants.StorageModes.SQLServer)
             {
-                userDataAccess = new SqlServerDataAccess();
+                portfolioDataAccess = new SqlServerDataAccess();
 
             }
             else
@@ -36,7 +36,7 @@ namespace WebRole.Controllers
             CloudQueueAccess queueAccess = new CloudQueueAccess();
             CloudBlobAccess blobAccess = new CloudBlobAccess();
 
-            this._userManager = new UserManager(userDataAccess, queueAccess, blobAccess);
+            this._portfolioManager = new PortfolioManager(portfolioDataAccess, queueAccess, blobAccess);
         }
     }
 }

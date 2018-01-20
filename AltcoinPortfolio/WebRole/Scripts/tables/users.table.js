@@ -71,7 +71,6 @@ let UsersTable = (function () {
     let loginUser = (email, password) => {
         let loginDate = new Date();
         let user = {
-            name: getUsername(email, password),
             email: email,
             timeStamp: loginDate.getFullYear() + '-' + (loginDate.getMonth() + 1) + '-' + loginDate.getDate()
         };

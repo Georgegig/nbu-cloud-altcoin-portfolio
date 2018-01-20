@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PortfolioCommon.Access
 {
-    public class SqlServerDataAccess : IUserDataAccess
+    public class SqlServerDataAccess : IPortfolioDataAccess
     {
         public SqlServerDataAccess()
         {
@@ -18,7 +18,96 @@ namespace PortfolioCommon.Access
 
         private const string _connectionString = @"Server=DESKTOP-SJ5O489;Database=NbuAltcoin;Integrated Security=True;";
 
-        private const string GetUserQuery = @"Select * from User Where [Id] = @Id";
+        private const string GetUserQuery = @"Select * from [dbo].[User] Where [Id] = @Id";
+        private const string InsertUserQuery = @" INSERT INTO [dbo].[User] (Id, Name, Email, Password)
+        VALUES(@Id, @Name, @Email, @Password)";
+        private const string CheckExistingEmail = @"
+  SELECT COUNT(*)
+  FROM [dbo].[User]
+  WHERE Email = @Email";
+        private const string GetUserPasswordByEmail = @" SELECT Password
+  FROM [dbo].[User]
+  WHERE Email = @Email";
+
+        public string GetUserPassword(string email)
+        {
+            string pass = string.Empty;
+            object result = null;
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlCommand cmd = new SqlCommand(GetUserPasswordByEmail, connection);
+
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    pass = (string)result;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+
+            return pass;
+        }
+
+        private bool CheckEmailExists(string email)
+        {
+            var count = 0;
+            object result = null;
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                SqlCommand cmd = new SqlCommand(CheckExistingEmail, connection);
+
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    count = (int)result;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            if (count > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public void RegisterUser(UserEntity user)
+        {
+            bool emailExists = this.CheckEmailExists(user.Email);
+            if (!emailExists)
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    SqlCommand insertCommand = new SqlCommand(InsertUserQuery, connection);
+
+                    insertCommand.Parameters.AddWithValue("@Id", Guid.NewGuid());
+                    insertCommand.Parameters.AddWithValue("@Name", user.Name);
+                    insertCommand.Parameters.AddWithValue("@Email", user.Email);
+                    insertCommand.Parameters.AddWithValue("@Password", user.Password);
+
+                    insertCommand.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                throw new Exception("Email alredy exists");
+            }
+        }
 
         public UserEntity GetUser(Guid userId)
         {
@@ -30,15 +119,15 @@ namespace PortfolioCommon.Access
 
                 adapter.SelectCommand.Parameters.AddWithValue("@Id", userId);
 
-                DataTable tableRaffles = new DataTable();
-                adapter.Fill(tableRaffles);
+                DataTable tableUsers = new DataTable();
+                adapter.Fill(tableUsers);
 
-                if (tableRaffles.Rows.Count == 0)
+                if (tableUsers.Rows.Count == 0)
                 {
                     return null;
                 }
 
-                DataRow row = tableRaffles.Rows[0];
+                DataRow row = tableUsers.Rows[0];
 
                 UserEntity raffle = createUserFromDataRow(row);
                 return raffle;

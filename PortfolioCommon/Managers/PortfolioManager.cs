@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 
 namespace PortfolioCommon.Managers
 {
-    public class UserManager
+    public class PortfolioManager
     {
         private static object _lock = new object();
 
-        private IUserDataAccess _userDataAccess;
+        private IPortfolioDataAccess _portfolioDataAccess;
         private CloudQueueAccess _cloudQueueAccess;
         private CloudBlobAccess _cloudBlobAccess;
 
-        public UserManager(IUserDataAccess UserdataAccess, CloudQueueAccess cloudQueueAccess, CloudBlobAccess cloudBlobAccess)
+        public PortfolioManager(IPortfolioDataAccess UserdataAccess, CloudQueueAccess cloudQueueAccess, CloudBlobAccess cloudBlobAccess)
         {
-            _userDataAccess = UserdataAccess;
+            _portfolioDataAccess = UserdataAccess;
             _cloudQueueAccess = cloudQueueAccess;
             _cloudBlobAccess = cloudBlobAccess;
         }
@@ -27,8 +27,18 @@ namespace PortfolioCommon.Managers
 
         public UserEntity GetUser(Guid userId)
         {
-            UserEntity user = _userDataAccess.GetUser(userId);
+            UserEntity user = _portfolioDataAccess.GetUser(userId);
             return user;
+        }
+
+        public void RegisterUser(UserEntity user)
+        {
+            this._portfolioDataAccess.RegisterUser(user);
+        }
+        public string GetUserPassword(string email)
+        {
+            string pass = _portfolioDataAccess.GetUserPassword(email);
+            return pass;
         }
 
         //public List<RaffleEntity> ReadAllRaffles()
