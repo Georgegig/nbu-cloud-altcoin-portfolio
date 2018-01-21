@@ -6,12 +6,15 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using PortfolioCommon;
 using PortfolioCommon.Access;
+using PortfolioCommon.Entities;
 using PortfolioCommon.Interfaces;
 
 namespace WorkerRole
@@ -30,8 +33,6 @@ namespace WorkerRole
                 Thread.Sleep(15000);
 
                 this.GetPortfolioMessage();
-
-                //this.UpdatePortfolioMessage();
             }
         }
 
@@ -62,16 +63,16 @@ namespace WorkerRole
 
             if (getPortfolioMessage != null)
             {
-                Guid raffleId;
+                string userEmail;
 
                 try
                 {
-                    raffleId = Guid.Parse(getPortfolioMessage.AsString);
-                    Trace.WriteLine("Processing Raffle id: " + raffleId.ToString());
+                    userEmail = getPortfolioMessage.AsString;
+                    Trace.WriteLine("Processing Portfolio for user: " + userEmail.ToString());
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine("Cannot parse Id from message." + ex.Message);
+                    Trace.WriteLine("Cannot process email from message." + ex.Message);
                     _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
 
                     return;
@@ -79,56 +80,40 @@ namespace WorkerRole
 
                 try
                 {
-                    //RaffleEntity raffle = _dataAccess.ReadRaffle(raffleId);
+                    List<CoinEntity> portfolio = _dataAccess.GetUserPortfolio(userEmail);
 
-                    //if (raffle == null)
-                    //{
-                    //    Trace.WriteLine("Raffle not found. Raffle ID: " + raffleId);
+                    if (portfolio == null || portfolio.Count == 0)
+                    {
+                        Trace.WriteLine("Portfolio not found or empty. User email: " + userEmail);
 
-                    //    _cloudQueueAccess.DeleteDrawRaffleMessage(drawRaffleMessage);
-                    //    continue;
-                    //}
+                        _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
+                        
+                    }
+                    else
+                    {
+                        //Business logic
+                        //Get coins from api. Refresh coins.
+                        for (int i = 0; i < portfolio.Count; i++)
+                        {
+                            WebRequest request = WebRequest.Create(string.Format(Constants.GET_COIN_INFORMATION, portfolio[i].Id));
+                            request.Credentials = CredentialCache.DefaultCredentials;
+                            WebResponse response = request.GetResponse();
+                            Trace.WriteLine(((HttpWebResponse)response).StatusDescription);
+                            Stream dataStream = response.GetResponseStream();
+                            StreamReader reader = new StreamReader(dataStream);
+                            string responseFromServer = reader.ReadToEnd();
+                            JavaScriptSerializer jser = new JavaScriptSerializer();
+                            List<CoinEntity> currCoin = jser.Deserialize<List<CoinEntity>>(responseFromServer);
+                            Trace.WriteLine(responseFromServer);
+                            this._dataAccess.UpdateCoinPrice(userEmail, currCoin[0]);
+                            reader.Close();
+                            response.Close();
+                        }                       
 
-                    //if (raffle.GetStatus() == RaffleStatus.Processed)
-                    //{
-                    //    Trace.WriteLine("Raffle is already precessed. Raffle ID: " + raffleId);
+                        Trace.WriteLine("Portfolio refreshed. User email: " + userEmail);
 
-                    //    _cloudQueueAccess.DeleteDrawRaffleMessage(drawRaffleMessage);
-                    //    continue;
-                    //}
-
-                    //var random = new Random();
-                    //raffle.WinningNumber = random.Next(1, 6);
-
-                    //List<BetEntity> betsForRaffle = _dataAccess.ReadBetsForRaffle(raffleId);
-                    //List<int> winningTicketNumbers = new List<int>();
-
-                    //foreach (var bet in betsForRaffle)
-                    //{
-                    //    if (bet.BetNumber == raffle.WinningNumber)
-                    //    {
-                    //        winningTicketNumbers.Add(bet.TicketNumber);
-                    //    }
-                    //}
-
-                    //raffle.SetStatus(RaffleStatus.Processed);
-                    //raffle.UpdateDate = DateTime.Now;
-
-                    //if (winningTicketNumbers.Count > 0)
-                    //{
-                    //    raffle.WinningTicketsResult = string.Join(", ", winningTicketNumbers);
-                    //}
-                    //else
-                    //{
-                    //    raffle.WinningTicketsResult = "No winning tickets.";
-                    //}
-
-                    //_dataAccess.UpdateRaffle(raffle);
-
-                    //Trace.WriteLine("Raffle processed. Raffle ID: " + raffleId);
-                    //Trace.WriteLine("Winning number: " + raffle.WinningNumber);
-
-                    _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
+                        _cloudQueueAccess.DeleteGetPortfolioMessage(getPortfolioMessage);
+                    }                   
                 }
                 catch (Exception ex)
                 {

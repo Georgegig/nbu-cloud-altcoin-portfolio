@@ -41,141 +41,58 @@ namespace PortfolioCommon.Managers
 
         public List<CoinEntity> GetUserPortfolio(string email)
         {
-            return this._portfolioDataAccess.GetUserPortfolio(email);
+            List<CoinEntity> portfolio = this._portfolioDataAccess.GetUserPortfolio(email);
+            this.uploadPortfolio(email, portfolio);
+            return portfolio;
+        }
+
+        private void uploadPortfolio(string email, List<CoinEntity> portfolio)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var item in portfolio)
+            {
+                sb.AppendLine(string.Format("Coin ID: {0}", item.Id));
+                sb.AppendLine(string.Format("Coin Name: {0}", item.Name));
+                sb.AppendLine(string.Format("Coin Amount: {0}", item.Amount));
+                sb.AppendLine(string.Format("Coin Price_USD: {0} $", item.Price_USD));
+                sb.AppendLine(string.Format("Coin Rank: {0}", item.Rank));
+                sb.AppendLine(string.Format("Coin Symbol: {0}", item.Symbol));
+                sb.AppendLine();
+            }
+
+            byte[] fileContents = Encoding.Unicode.GetBytes(sb.ToString());
+            string portfolioBlobName = createPortfolioBlobName(email);
+            _cloudBlobAccess.UploadBlob(fileContents, portfolioBlobName);
+        }
+
+        public byte[] GetPortfolioFileContents(string email)
+        {
+            string portfolioBlobName = createPortfolioBlobName(email);
+            byte[] portoflioFileContents = _cloudBlobAccess.DownloadPortfolio(portfolioBlobName);
+
+            return portoflioFileContents;
+        }
+
+        private string createPortfolioBlobName(string email)
+        {
+            string portfolioBlobName = string.Format("{0}_{1}", email, "Portfolio");
+            return portfolioBlobName;
         }
 
         public void AddCoinToUserPortfolio(string email, CoinEntity coin)
         {
             this._portfolioDataAccess.AddCoinToUserPortfolio(email, coin);
         }
-        //public List<RaffleEntity> ReadAllRaffles()
-        //{
-        //    List<RaffleEntity> raffles = _dataAccess.ReadAllRaffles();
-        //    return raffles;
-        //}
 
-        //public RaffleEntity CreateNewRaffle()
-        //{
-        //    lock (_lock)
-        //    {
-        //        var newRaffle = new RaffleEntity();
-        //        newRaffle.Id = Guid.NewGuid();
-        //        newRaffle.SetStatus(RaffleStatus.Open);
-        //        newRaffle.CreateDate = DateTime.Now;
-        //        newRaffle.UpdateDate = newRaffle.CreateDate;
+        public void RefreshPortfolio(string email)
+        {
+            _cloudQueueAccess.PostGetPortfolioMessage(email);
+        }
 
-        //        _dataAccess.InsertRaffle(newRaffle);
-
-        //        return newRaffle;
-        //    }
-        //}
-
-        //public void CloseRaffleAndDraw(Guid raffleId)
-        //{
-        //    RaffleEntity raffle = ReadRaffle(raffleId);
-
-        //    if (raffle.GetStatus() != RaffleStatus.Open)
-        //    {
-        //        throw new InvalidOperationException("Raffle is not open. Raffle ID: " + raffleId);
-        //    }
-
-        //    raffle.SetStatus(RaffleStatus.Closed);
-        //    raffle.UpdateDate = DateTime.Now;
-
-        //    _dataAccess.UpdateRaffle(raffle);
-        //    _cloudQueueAccess.PostDrawRaffleMessage(raffleId);
-        //}
-
-        //public List<BetEntity> ReadBets(Guid raffleId)
-        //{
-        //    List<BetEntity> betsForRaffle = _dataAccess.ReadBetsForRaffle(raffleId);
-        //    return betsForRaffle;
-        //}
-
-        //public BetEntity PlaceBet(Guid raffleId, int betNumber, string submitedBy)
-        //{
-        //    if (betNumber < 1 || betNumber > 6)
-        //    {
-        //        throw new ArgumentOutOfRangeException("betNumber must be within 1 to 6 inclusive.");
-        //    }
-
-        //    lock (_lock)
-        //    {
-        //        checkIfRaffleIsOpen(raffleId);
-        //        int nextTicketNumber = getLastTicketNumber(raffleId) + 1;
-
-        //        var bet = new BetEntity();
-
-        //        bet.RaffleId = raffleId;
-        //        bet.TicketNumber = nextTicketNumber;
-        //        bet.BetNumber = betNumber;
-        //        bet.SubmittedBy = submitedBy;
-        //        bet.CreateDate = DateTime.Now;
-        //        bet.UpdateDate = bet.CreateDate;
-
-        //        _dataAccess.InsertBet(bet);
-
-        //        uploadBetTicketFile(bet);
-
-        //        return bet;
-        //    }
-        //}
-
-        //public byte[] GetTicketFileContents(Guid raffleId, int ticketNumber)
-        //{
-        //    string ticketBlobName = createTicketBlobName(raffleId, ticketNumber);
-        //    byte[] ticketFileContents = _cloudBlobAccess.DownloadBlob(ticketBlobName);
-
-        //    return ticketFileContents;
-        //}
-
-        //private void checkIfRaffleIsOpen(Guid raffleId)
-        //{
-        //    RaffleEntity raffle = ReadRaffle(raffleId);
-
-        //    if (raffle == null)
-        //    {
-        //        throw new InvalidOperationException("Raffle not found. Raffle ID: " + raffleId);
-        //    }
-
-        //    if (raffle.GetStatus() != RaffleStatus.Open)
-        //    {
-        //        throw new InvalidOperationException("Raffle is not open. Raffle ID: " + raffleId);
-        //    }
-        //}
-
-        //private int getLastTicketNumber(Guid raffleId)
-        //{
-        //    List<BetEntity> betsForRaffle = ReadBets(raffleId);
-
-        //    if (betsForRaffle.Count == 0)
-        //    {
-        //        return 0;
-        //    }
-
-        //    int maxTicketNumber = betsForRaffle.Max(bet => bet.TicketNumber);
-        //    return maxTicketNumber;
-        //}
-
-        //private void uploadBetTicketFile(BetEntity bet)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-
-        //    sb.AppendLine(string.Format("Raffle ID: {0}", bet.RaffleId));
-        //    sb.AppendLine(string.Format("Ticket number: {0}", bet.TicketNumber));
-        //    sb.AppendLine(string.Format("Bet number: {0}", bet.BetNumber));
-        //    sb.AppendLine(string.Format("Submitted by: {0}", bet.SubmittedBy));
-        //    sb.AppendLine(string.Format("Bet Date: {0}", bet.CreateDate));
-
-        //    byte[] fileContents = Encoding.Unicode.GetBytes(sb.ToString());
-        //    string ticketBlobName = createTicketBlobName(bet.RaffleId, bet.TicketNumber);
-        //    _cloudBlobAccess.UploadBlob(fileContents, ticketBlobName);
-        //}
-
-        //private string createTicketBlobName(Guid raffleId, int ticketNumber)
-        //{
-        //    string ticketBlobName = string.Format("{0}_{1}", raffleId, ticketNumber);
-        //    return ticketBlobName;
-        //}
+        public void DeletePortfolio(string email)
+        {
+            this._portfolioDataAccess.DeleteUserPortfolio(email);
+        }
     }
 }

@@ -37,10 +37,12 @@ namespace PortfolioCommon
             public const string GetPortfolio = "getportfolio";
         }
 
-        //public class BlobNames
-        //{
-        //    public const string DrawRaffle = "raffle";
-        //}
+        public class BlobNames
+        {
+            public const string GetPortfolio = "portfolio";
+        }
+
+        public const string GET_COIN_INFORMATION = "https://api.coinmarketcap.com/v1/ticker/{0}/";
 
         public class StorageModes
         {

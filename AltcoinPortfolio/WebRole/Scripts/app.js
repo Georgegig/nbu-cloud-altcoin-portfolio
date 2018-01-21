@@ -9,3 +9,14 @@ let vm = new Vue({
         }
     }
 });
+
+$(function () {
+    var notificationHub = $.connection.notificationHub;
+
+    notificationHub.client.reload = function () {
+        debugger;
+        location.reload();
+    };
+
+    $.connection.hub.start();
+});

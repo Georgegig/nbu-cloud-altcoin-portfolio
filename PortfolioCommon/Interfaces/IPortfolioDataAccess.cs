@@ -16,5 +16,7 @@ namespace PortfolioCommon.Interfaces
 
         List<CoinEntity> GetUserPortfolio(string email);
         void AddCoinToUserPortfolio(string email, CoinEntity coin);
+        void UpdateCoinPrice(string email, CoinEntity coin);
+        void DeleteUserPortfolio(string email);
     }
 }

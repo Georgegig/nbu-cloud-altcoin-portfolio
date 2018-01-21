@@ -9,10 +9,10 @@ let PortfolioView = {
                 </v-card>
             </v-flex>
         </v-layout>
-        <v-layout row wrap v-for="p in portfolio" :key="p.id">
+        <v-layout row wrap v-for="p in portfolio" :key="p.Id">
             <v-flex xs12>
                 <v-card class="grey lighten-4">
-                    <v-card-text class="px-0"><h2><b>{{p.name}} - Amount: {{p.amount}} Price: {{p.price_usd}} USD</b></h2></v-card-text>
+                    <v-card-text class="px-0"><h2><b>{{p.Name}} - Amount: {{p.Amount}} Price: {{p.Price_USD}} USD</b></h2></v-card-text>
                 </v-card>
             </v-flex>
         </v-layout>
@@ -25,6 +25,9 @@ let PortfolioView = {
             </v-btn>
             <v-btn dark fab color="blue" center v-on:click="refreshPortfolio()">
                 <v-icon>refresh</v-icon>
+            </v-btn>
+            <v-btn dark fab color="blue" center v-on:click="downloadPortfolio()">
+                <v-icon>get_app</v-icon>
             </v-btn>
             <v-dialog v-model="selectCoinDialog" scrollable max-width="600px">                
                 <v-card>
@@ -73,7 +76,7 @@ let PortfolioView = {
     },
     mounted(){
         if(UsersTable.userLoggedIn()){
-            this.refreshPortfolio();
+            this.getPortfolio();
     
             this.$http.get('https://api.coinmarketcap.com/v1/ticker/?start=0&limit=1400').then(
                 (data) => {
@@ -142,7 +145,7 @@ let PortfolioView = {
                 this.addCoinDialog = false;
             }
         },
-        refreshPortfolio() {  
+        getPortfolio() {  
             debugger;
             this.$http.get(CONSTANTS.SERVER_ROUTES.GET_PORTFOLIO + '?email=' + UsersTable.getLoggedUserMail())
                 .then(function success(data) {
@@ -151,27 +154,11 @@ let PortfolioView = {
                     this.portfolio = this.portfolio ? this.portfolio : [];
                     if (this.portfolio && this.portfolio.length > 0) {
                         this.totalAmount = 0;
-                        let promises = [];
-                        for (var i = 0; i < this.portfolio.length; i++) {
-                            promises.push(this.$http.get(`https://api.coinmarketcap.com/v1/ticker/${this.portfolio[i].Id}/`));
+                        for (let i = 0; i < this.portfolio.length; i++) {
+                            let currCoinAmount = this.portfolio[i].Amount;
+                            this.totalAmount += parseFloat(currCoinAmount) * parseFloat(this.portfolio[i].Price_USD);
                         }
-                        Promise.all(promises).then(
-                            (responseArray) => {
-                                for (let i = 0; i < responseArray.length; i++) {
-                                    let response = responseArray[i].body[0];
-                                    let coinIndex = _.findIndex(this.portfolio, (el) => {
-                                        return el.Id == response.id;
-                                    });
-                                    let currentCoin = this.portfolio[coinIndex];
-                                    let currCoinAmount = currentCoin.Amount;
-                                    this.portfolio[coinIndex] = response;
-                                    this.portfolio[coinIndex].Amount = currCoinAmount;
-                                    this.totalAmount += parseFloat(currCoinAmount) * parseFloat(response.price_usd);
-                                }
-                                this.totalAmount = this.totalAmount.toFixed(2);
-                            },
-                            (err) => { console.log(err); }
-                        );
+                        this.totalAmount = this.totalAmount.toFixed(2);
                     }
                     else {
                         this.totalAmount = 0;
@@ -180,9 +167,14 @@ let PortfolioView = {
                     console.log(data);
                 });            
         },
+        refreshPortfolio() {
+            this.$http.get(CONSTANTS.SERVER_ROUTES.REFRESH_PORTFOLIO + '?email=' + UsersTable.getLoggedUserMail());
+        },
         deletePortfolio() {
-            PortfolioTable.deleteUserPortfolio();
-            this.refreshPortfolio();
+            this.$http.get(CONSTANTS.SERVER_ROUTES.DELETE_PORTFOLIO + '?email=' + UsersTable.getLoggedUserMail());
+        },
+        downloadPortfolio() {
+            window.open(CONSTANTS.SERVER_ROUTES.DOWNLOAD_PORTFOLIO + '?email=' + UsersTable.getLoggedUserMail(), '_blank');
         }
     }
 };

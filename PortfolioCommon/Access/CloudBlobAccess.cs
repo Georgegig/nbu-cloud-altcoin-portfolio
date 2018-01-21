@@ -12,44 +12,44 @@ namespace PortfolioCommon.Access
     public class CloudBlobAccess
     {
 
-        //public void UploadBlob(byte[] contents, string blobName)
-        //{
-        //    CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.DrawRaffle);
-        //    CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+        public void UploadBlob(byte[] contents, string blobName)
+        {
+            CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.GetPortfolio);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
 
-        //    using (MemoryStream memoryStream = new MemoryStream(contents))
-        //    {
-        //        blockBlob.UploadFromStream(memoryStream);
-        //    }
-        //}
+            using (MemoryStream memoryStream = new MemoryStream(contents))
+            {
+                blockBlob.UploadFromStream(memoryStream);
+            }
+        }
 
-        //public byte[] DownloadBlob(string blobName)
-        //{
-        //    CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.DrawRaffle);
-        //    CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+        public void ClearBlobs()
+        {
+            CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.GetPortfolio);
+            container.DeleteIfExists();
+            container.Create();
+        }
 
-        //    using (MemoryStream memoryStream = new MemoryStream())
-        //    {
-        //        blockBlob.DownloadToStream(memoryStream);
-        //        return memoryStream.ToArray();
-        //    }
-        //}
+        private CloudBlobContainer createCloudBlobContainer(string queueName)
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(queueName);
+            container.CreateIfNotExists();
 
-        //public void ClearBlobs()
-        //{
-        //    CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.DrawRaffle);
-        //    container.DeleteIfExists();
-        //    container.Create();
-        //}
+            return container;
+        }
 
-        //private CloudBlobContainer createCloudBlobContainer(string queueName)
-        //{
-        //    CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-        //    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-        //    CloudBlobContainer container = blobClient.GetContainerReference(queueName);
-        //    container.CreateIfNotExists();
+        public byte[] DownloadPortfolio(string blobName)
+        {
+            CloudBlobContainer container = createCloudBlobContainer(Constants.BlobNames.GetPortfolio);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
 
-        //    return container;
-        //}
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                blockBlob.DownloadToStream(memoryStream);
+                return memoryStream.ToArray();
+            }
+        }
     }
 }

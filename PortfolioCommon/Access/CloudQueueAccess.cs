@@ -31,6 +31,16 @@ namespace PortfolioCommon.Access
             return queue;
         }
 
+        public void PostGetPortfolioMessage(string email)
+        {
+            CloudQueue queue = createQueueReference(Constants.QueueNames.GetPortfolio);
+
+            queue.CreateIfNotExists();
+
+            var message = new CloudQueueMessage(email);
+            queue.AddMessage(message);
+        }
+
         public CloudQueueMessage ReadGetPortfolioMessage()
         {
             CloudQueue queue = createQueueReference(Constants.QueueNames.GetPortfolio);
@@ -62,16 +72,5 @@ namespace PortfolioCommon.Access
                 Trace.WriteLine("Cannot delete message. " + ex.Message);
             }
         }
-
-        //public void PostDrawRaffleMessage(Guid raffleId)
-        //{
-        //    CloudQueue queue = createQueueReference(Constants.QueueNames.DrawRaffle);
-
-        //    queue.CreateIfNotExists();
-
-        //    var message = new CloudQueueMessage(raffleId.ToString());
-        //    queue.AddMessage(message);
-        //}
-
     }
 }
