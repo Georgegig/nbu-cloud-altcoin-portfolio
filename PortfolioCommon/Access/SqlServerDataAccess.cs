@@ -48,8 +48,8 @@ WHERE u.Email = @Email";
         private const string GetUserPortfolioIdQuery = @"SELECT p.Id as Id FROM [dbo].[Portfolio] p
 INNER JOIN [dbo].[User] u ON p.UserId = u.Id
 WHERE u.Email = @Email";
-        private const string InsertCoinQuery = @"INSERT INTO [dbo].[Coin] (Id, PortfolioId, Name, Symbol, Rank, Price_USD, Amount)
-VALUES (@Id, @PortfolioId, @Name, @Symbol, @Rank, @Price_USD, @Amount)";
+        private const string InsertCoinQuery = @"INSERT INTO [dbo].[Coin] (SysId, Id, PortfolioId, Name, Symbol, Rank, Price_USD, Amount)
+VALUES (@SysId, @Id, @PortfolioId, @Name, @Symbol, @Rank, @Price_USD, @Amount)";
         private const string ClearPortfolioQuery = @"Delete from [dbo].[Portfolio]";
         private const string PortfolioHasCoinQuery = @"SELECT COUNT(c.Id) FROM [dbo].Coin c 
 INNER JOIN [dbo].[Portfolio] p ON p.Id = c.PortfolioId
@@ -314,6 +314,7 @@ AND Id = @CoinId";
                     connection.Open();
                     SqlCommand insertCommand = new SqlCommand(InsertCoinQuery, connection);
 
+                    insertCommand.Parameters.AddWithValue("@SysId", Guid.NewGuid());
                     insertCommand.Parameters.AddWithValue("@Id", coin.Id);
                     insertCommand.Parameters.AddWithValue("@PortfolioId", portfolioId);
                     insertCommand.Parameters.AddWithValue("@Name", coin.Name);

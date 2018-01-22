@@ -13,11 +13,19 @@ let RegisterView = {
                 </v-form>
                 <v-btn @click="register()" :disabled="!valid" color="primary" white--text><b>REGISTER</b></v-btn>
                 <v-btn @click="clear()">clear</v-btn>
+
+                <v-alert color="error" icon="warning" value="true" v-show="unsuccessfulregistration.show">
+                    {{unsuccessfulregistration.message}}
+                </v-alert>
             </v-flex>
         </v-layout>
     </v-container>`,
     data () {
         return {
+            unsuccessfulregistration: {
+                show: false,
+                message: ''
+            },
             valid: true,
             name: '',
             nameRules: [
@@ -61,6 +69,10 @@ let RegisterView = {
                 }).then(function success(data) {
                     if (data.body.success) {
                         this.$router.push('/login');
+                    }
+                    else {
+                        this.unsuccessfulregistration.show = true;
+                        this.unsuccessfulregistration.message = data.body.message;
                     }
                     console.log(data);
                 },
