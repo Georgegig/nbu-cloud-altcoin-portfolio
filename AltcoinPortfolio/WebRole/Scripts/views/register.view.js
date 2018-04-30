@@ -8,8 +8,8 @@ let RegisterView = {
                 <v-form v-model="valid" ref="form">
                     <v-text-field label="Name" v-model="name" :rules="nameRules" :counter="20" required></v-text-field>
                     <v-text-field label="E-mail" v-model="email" :rules="emailRules" required></v-text-field>
-                    <v-text-field label="Password" v-model="password" :rules="passwordRules" :counter="8" required></v-text-field>
-                    <v-text-field label="Repeat Password" v-model="repeatedPassword" :rules="repeatedPasswordRules" required></v-text-field>
+                    <v-text-field label="Password" type="password" v-model="password" :rules="passwordRules" :counter="8" required></v-text-field>
+                    <v-text-field label="Repeat Password" type="password" v-model="repeatedPassword" :rules="repeatedPasswordRules" required></v-text-field>
                 </v-form>
                 <v-btn @click="register()" :disabled="!valid" color="primary" white--text><b>REGISTER</b></v-btn>
                 <v-btn @click="clear()">clear</v-btn>

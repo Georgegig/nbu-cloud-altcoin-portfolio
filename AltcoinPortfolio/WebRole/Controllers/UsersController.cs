@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,17 +19,26 @@ namespace WebRole.Controllers
         {
             object result = null;
 
+            /* Fetch the stored value */
             string passFromDb = this._portfolioManager.GetUserPassword(user.Email);
             if (!string.IsNullOrEmpty(passFromDb))
             {
-                if (passFromDb != user.Password)
+                /* Extract the bytes */
+                byte[] hashBytes = Convert.FromBase64String(passFromDb);
+                /* Get the salt */
+                byte[] salt = new byte[16];
+                Array.Copy(hashBytes, 0, salt, 0, 16);
+                /* Compute the hash on the password the user entered */
+                var pbkdf2 = new Rfc2898DeriveBytes(user.Password, salt, 10000);
+                byte[] hash = pbkdf2.GetBytes(20);
+                /* Compare the results */
+                for (int i = 0; i < 20; i++)
                 {
-                    return Json(new { success = false, result }, JsonRequestBehavior.AllowGet);
+                    if (hashBytes[i + 16] != hash[i])
+                        return Json(new { success = false, result }, JsonRequestBehavior.AllowGet);
                 }
-                else
-                {
-                    result = new { user.Email };
-                }
+
+                result = new { user.Email };                
             }
             else
             {

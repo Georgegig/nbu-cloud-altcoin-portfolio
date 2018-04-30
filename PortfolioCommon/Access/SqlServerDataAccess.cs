@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -132,6 +133,14 @@ AND Id = @CoinId";
             if (!emailExists)
             {
                 var userId = Guid.NewGuid();
+                byte[] salt;
+                new RNGCryptoServiceProvider().GetBytes(salt = new byte[16]);
+                var pbkdf2 = new Rfc2898DeriveBytes(user.Password, salt, 10000);
+                byte[] hash = pbkdf2.GetBytes(20);
+                byte[] hashBytes = new byte[36];
+                Array.Copy(salt, 0, hashBytes, 0, 16);
+                Array.Copy(hash, 0, hashBytes, 16, 20);
+                string savedPasswordHash = Convert.ToBase64String(hashBytes);
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
@@ -140,7 +149,7 @@ AND Id = @CoinId";
                     insertCommand.Parameters.AddWithValue("@Id", userId);
                     insertCommand.Parameters.AddWithValue("@Name", user.Name);
                     insertCommand.Parameters.AddWithValue("@Email", user.Email);
-                    insertCommand.Parameters.AddWithValue("@Password", user.Password);
+                    insertCommand.Parameters.AddWithValue("@Password", savedPasswordHash);
 
                     insertCommand.ExecuteNonQuery();
                 }

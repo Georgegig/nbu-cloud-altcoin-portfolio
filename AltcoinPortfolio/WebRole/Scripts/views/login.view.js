@@ -7,7 +7,7 @@ let LoginView = {
             <v-flex xs-12>   
                 <v-form v-model="valid" ref="form" v-show="!successfulLogin">
                     <v-text-field label="E-mail" v-model="email" :rules="emailRules" required></v-text-field>
-                    <v-text-field label="Password" v-model="password" :rules="passwordRules" required></v-text-field>
+                    <v-text-field label="Password" type="password" v-model="password" :rules="passwordRules" required></v-text-field>
                     <v-btn @click="login()" :disabled="!valid" color="primary" white--text><b>LOG IN</b></v-btn>
                     <v-btn @click="clear()">clear</v-btn>
                 </v-form>
