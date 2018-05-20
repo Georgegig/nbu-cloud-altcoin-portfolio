@@ -3,6 +3,7 @@ using PortfolioCommon.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using System.Web;
 using System.Web.Mvc;
 
@@ -10,6 +11,7 @@ namespace WebRole.Controllers
 {
     public class PortfolioController : BaseController
     {
+        private Timer timer = new Timer();
         public PortfolioController() : base()
         {
         }
@@ -58,13 +60,26 @@ namespace WebRole.Controllers
             try
             {
                 this._portfolioManager.RefreshPortfolio(email);
-                NotificationHub.Reload();
+                this.ReloadClientsPortfolio();
             }
             catch (Exception e)
             {
                 return Json(new { success = false }, JsonRequestBehavior.AllowGet);
             }
             return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+        }
+        
+        private void ReloadClientsPortfolio()
+        {
+            this.timer.Interval = 3000;
+            this.timer.Enabled = true;
+            this.timer.Elapsed += new ElapsedEventHandler(OnTimedReloadPortfolio);
+            this.timer.Start();
+        }
+        private void OnTimedReloadPortfolio(Object sender, ElapsedEventArgs e)
+        {
+            NotificationHub.Reload();
+            this.timer.Stop();
         }
 
         public ActionResult DownloadPortfolio(string email)
@@ -75,7 +90,7 @@ namespace WebRole.Controllers
                  "application/x-msdownload", string.Format("User{0}_Portfolio.txt", email));
         }
 
-        byte[] GetPortfolio(string email)
+        private byte[] GetPortfolio(string email)
         {
             try
             {

@@ -21,6 +21,7 @@ namespace PortfolioCommon.Access
         }
 
         //// Queue name must be lowercase - Bad Request error is returned if queue with uppercase letter in the name is created
+        //https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-Queues-and-Metadata?redirectedfrom=MSDN
         private CloudQueue createQueueReference(string queueName)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
