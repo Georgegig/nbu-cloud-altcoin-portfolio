@@ -11,7 +11,7 @@ namespace PortfolioCommon.Access
 {
     public class CloudQueueAccess
     {
-        public void ClearDrawRaffleQueue()
+        public void ClearGetPortfolioQueue()
         {
             CloudQueue queue = createQueueReference(Constants.QueueNames.GetPortfolio);
             if (queue.Exists())

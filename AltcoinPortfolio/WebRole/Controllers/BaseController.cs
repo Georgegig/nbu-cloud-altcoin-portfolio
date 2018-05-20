@@ -26,7 +26,6 @@ namespace WebRole.Controllers
             if(ConfigurationManager.AppSettings["StorageMode"] == Constants.StorageModes.SQLServer)
             {
                 portfolioDataAccess = new SqlServerDataAccess();
-
             }
             else
             {

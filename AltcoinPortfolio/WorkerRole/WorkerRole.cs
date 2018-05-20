@@ -54,7 +54,7 @@ namespace WorkerRole
             File.Delete(@"C:\PortfolioWorkerRole.log");
 
             //_dataAccess.ClearData();
-            _cloudQueueAccess.ClearDrawRaffleQueue();
+            _cloudQueueAccess.ClearGetPortfolioQueue();
         }
 
         private void GetPortfolioMessage()
